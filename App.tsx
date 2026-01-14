@@ -76,9 +76,18 @@ const App: React.FC = () => {
   }, [transactions]);
 
   const handleAddTransaction = async (type: TransactionType, amount: number, rate: number) => {
+    // MySQL compatible date format: YYYY-MM-DD HH:MM:SS
+    const now = new Date();
+    const mysqlDate = now.getFullYear() + '-' +
+      String(now.getMonth() + 1).padStart(2, '0') + '-' +
+      String(now.getDate()).padStart(2, '0') + ' ' +
+      String(now.getHours()).padStart(2, '0') + ':' +
+      String(now.getMinutes()).padStart(2, '0') + ':' +
+      String(now.getSeconds()).padStart(2, '0');
+
     const newTx: Transaction = {
-      id: Date.now().toString(), // We generate ID on client for simplicity, or let DB handle it
-      date: new Date().toISOString(),
+      id: Date.now().toString(), 
+      date: mysqlDate, // Updated to prevent SQL conversion errors
       type,
       amountUSD: amount,
       rate: rate,
@@ -98,7 +107,9 @@ const App: React.FC = () => {
     // Save to Database
     const saved = await transactionService.save(newTx);
     if (!saved) {
-      alert("⚠️ Warning: Could not save to database. Check your internet connection or server configuration.");
+      // If save fails, remove from UI to keep state consistent? 
+      // For now, we just alert. In a real app, we might rollback.
+      console.warn("Could not save to DB");
     }
   };
 

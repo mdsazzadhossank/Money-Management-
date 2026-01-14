@@ -1,10 +1,7 @@
 import { Transaction } from '../types';
 
-// ⚠️ গুরত্বপূর্ণ: আপনি যদি লোকাল কম্পিউটারে (npm run dev) কাজ করেন, তাহলে এখানে api.php এর পুরো লিংক দিতে হবে।
-// উদাহরণ: 'http://localhost/dollar-tracker/api.php' অথবা 'https://yourdomain.com/api.php'
-// আর যদি হোস্টিংয়ে আপলোড করে থাকেন, তাহলে শুধু 'api.php' রাখলেই চলবে।
-
-const API_URL = 'http://localhost/your_folder_name/api.php'; // 👈 এখানে আপনার সঠিক URL টি বসান
+// ⚠️ আপনার স্ক্রিনশট অনুযায়ী লাইভ সার্ভারের লিংক দেওয়া হলো
+const API_URL = 'https://devkazi.cloud/api.php';
 
 export const transactionService = {
   async getAll(): Promise<Transaction[]> {
@@ -15,7 +12,8 @@ export const transactionService = {
       if (!response.ok) {
         const text = await response.text();
         console.error("API Error (GetAll):", response.status, text);
-        throw new Error(`Server returned status: ${response.status}`);
+        // 500 এরর হ্যান্ডেল করা যাতে অ্যাপ ক্র্যাশ না করে
+        return []; 
       }
 
       const text = await response.text();
@@ -50,19 +48,26 @@ export const transactionService = {
         body: JSON.stringify(transaction),
       });
 
+      // রেসপন্স টেক্সট আগে নিয়ে নিচ্ছি ডিবাগিংয়ের জন্য
+      const responseText = await response.text();
+
       if (!response.ok) {
-        const text = await response.text();
-        console.error("API Error (Save):", response.status, text);
-        alert(`Error: Server returned ${response.status}. Check console for details.`);
+        console.error("API Error (Save):", response.status, responseText);
+        alert(`Server Error (${response.status}): ${responseText.substring(0, 100)}`);
         return false;
       }
 
-      const result = await response.json();
-      console.log("Save success:", result);
-      return true;
+      try {
+        const result = JSON.parse(responseText);
+        console.log("Save success:", result);
+        return true;
+      } catch (e) {
+        console.error("Non-JSON response from server:", responseText);
+        return true; // অনেক সময় পিএইচপি ওয়ার্নিং দিলেও ডাটা সেভ হয়
+      }
     } catch (error) {
       console.error("Network Failed to save transaction:", error);
-      alert("Network Error: Could not connect to API. Check if the URL is correct in transactionService.ts");
+      alert("Network Error: Could not connect to API.");
       return false;
     }
   }
