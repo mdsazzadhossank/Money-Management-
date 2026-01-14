@@ -1,0 +1,5 @@
+{
+  "name": "Dollar Trade Tracker",
+  "description": "A comprehensive money management system to track dollar buying/selling and calculate realized profits automatically.",
+  "requestFramePermissions": []
+}
